@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.AptMapper">
+
+	<!-- listApt -->
+	<select id="aptlist" parameterType="com.ssafy.happyhouse.model.MapBoundDto" resultType="AptListInfoDto">
+		select a.aptcode, a.apartmentName, a.address, round(avg(dealAmount), 0) / 10 as dealAmount, floor(area / 3.3058) as area, a.lat, a.lng
+			from housedeal d,
+			(select i.aptcode, i.apartmentName, i.lng, i.lat, b.address
+			   from baseaddress b, houseInfo i
+			where i.lat between #{minLatitude} and #{maxLatitude} 
+			  and i.lng between #{minLongitude} and #{maxLongitude}
+			  and b.dongcode = i.dongcode) a
+		where a.aptcode = d.aptcode
+		group by d.aptcode
+	</select>
+	
+	<select id="aptDongList" parameterType="MapBoundDto" resultType="AptLocInfoDto">
+		select a.address, a.dongname as location, round(avg(dealamount), 0) as dealamount, avg(a.lat) as lat, avg(a.lng) as lng
+		  from housedeal h,
+		   (select aptcode, b.dongname, b.address, b.lat, b.lng
+			  from baseaddress b, houseinfo i
+			where i.lat between #{minLatitude} and #{maxLatitude} 
+			  and i.lng between #{minLongitude} and #{maxLongitude}
+			  and b.dongcode = i.dongcode) a
+		where h.aptcode = a.aptcode
+		group by a.dongname
+	</select>
+	
+	<select id="aptGugunList" parameterType="MapBoundDto" resultType="AptLocInfoDto">	
+		select a.address, a.gugunName as location, round(avg(dealamount), 0) as dealamount, avg(a.lat) as lat, avg(a.lng) as lng
+		  from housedeal d, 
+		 (select aptcode, b.gugunName, b.address, b.lat, b.lng
+			  from baseaddress b, houseInfo i
+				where i.lat between #{minLatitude} and #{maxLatitude} 
+				  and i.lng between #{minLongitude} and #{maxLongitude}
+			  and b.dongcode = i.dongcode) a
+		where d.aptcode = a.aptcode
+		group by a.gugunname;
+	</select>
+	
+	<select id="aptSidoList" parameterType="MapBoundDto" resultType="AptLocInfoDto">	
+		select a.address, a.sidoname as location, round(avg(dealamount), 0) as dealamount, avg(a.lat) as lat, avg(a.lng) as lng
+		  from housedeal d, 
+		 (select aptcode, b.sidoname, b.address, b.lat, b.lng
+			  from baseaddress b, houseInfo i
+				where i.lat between #{minLatitude} and #{maxLatitude} 
+				  and i.lng between #{minLongitude} and #{maxLongitude}
+			  and b.dongcode = i.dongcode) a
+		where d.aptcode = a.aptcode
+		group by a.sidoname
+	</select>
+	
+	<select id="aptdetail" parameterType="String" resultType = "HouseInfoDealDto">
+	 select b.dongname, b.address, i.apartmentName, i.buildYear, i.jibun, d.dealAmount
+	  from houseinfo i, baseaddress b, 
+	  (select round(avg(dealAmount),0) / 10 as dealAmount from housedeal where aptcode = #{aptcode}) d
+	 where aptcode = #{aptcode}
+	   and i.dongcode = b.dongcode
+	</select>
+
+	<select id="aptDealList" parameterType = "String" resultType = "HouseDealListDto">
+	   select d.dealAmount, d.dealYear, d.dealMonth, d.dealDay, d.floor, round((d.area / 3.3058), 0) as area
+	  from housedeal d
+	 where aptcode = #{aptcode}
+	 order by dealYear desc, dealMonth desc, dealDay desc
+	</select>
+
+	<!-- addSearch -->
+	<select id="addsearch" parameterType="String"
+		resultType="AddressDto">
+		select concat(sidoname, ' ', gugunname, ' ', dongname) as address, lat, lng
+		from baseaddress
+		where concat(sidoname, gugunname, dongname) like concat('%', #{addString}, '%')
+	</select>
+	
+	<select id="checkInterest" parameterType = "InterestDto" resultType = "int">	
+		select count(1)
+		  from interest
+		 where userid = #{userid}
+		   and dongcode = (select dongcode 
+		   					 from baseaddress
+		   					where dongname = #{dongname})
+	</select>
+	<insert id ="addInterest" parameterType = "InterestDto">
+		<selectKey keyProperty="dongcode" resultType="String" order="BEFORE">
+			select dongcode from baseaddress where dongname = #{dongname}
+		</selectKey>		
+		insert into interest(userid, dongcode)
+		  values
+		  (#{userid}, #{dongcode})
+	</insert>
+	
+	<select id="interestList" parameterType="String" resultType="InterestListDto">
+		select b.address, b.lat, b.lng, i.dongcode
+		  from baseaddress b, interest i
+		 where b.dongcode = i.dongcode
+		   and i.userid = #{userid}
+	</select>
+	
+	<delete id="deleteInterest" parameterType="InterestDto">
+		delete from interest
+		where userid = #{userid} and dongcode = #{dongcode}
+	</delete>
+	
+	
+	<select id="subwayList" resultType="SubwayResponseDto" parameterType="com.ssafy.happyhouse.model.MapBoundDto">
+		select subwayid, subwayname, lineno, lat, lng
+		from subwayinfo
+		where lat <![CDATA[ <= ]]> #{maxLatitude}
+				and lat <![CDATA[ >= ]]> #{minLatitude}
+				and lng <![CDATA[ <= ]]> #{maxLongitude}
+				and lng <![CDATA[ >= ]]> #{minLongitude}
+	</select>
+</mapper>

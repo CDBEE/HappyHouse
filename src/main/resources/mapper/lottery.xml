@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.LotteryMapper">
+	<select id="lotteryList" resultType="LotteryResponseDto" parameterType="MapBoundDto">
+		select id, housenm, hssplyadres, lat, lng, case when datediff(date(now()),rceptBgnde) <![CDATA[ < ]]> 0 then '청약접수전'
+												when datediff(date(now()),rceptBgnde)<![CDATA[ >= ]]> 0 and datediff(date(now()),rceptendde) <![CDATA[ < ]]> 0 then '청약접수중'
+                                                else '청약종료' end as status
+ 		from lottery
+		where lat <![CDATA[ <= ]]> #{maxLatitude} 
+				and lat <![CDATA[ >= ]]> #{minLatitude}
+				and lng <![CDATA[ <= ]]> #{maxLongitude}
+				and lng <![CDATA[ >= ]]> #{minLongitude}
+	</select>
+	
+	<select id="lotteryDetail" resultType="LotteryDetailResponseDto" parameterType="int">
+	select subscrptAreaCodeNm, hssplyAdres, houseNm, rentSeCdNm, totSuplyHshldco, rcritPblancDe, 
+		 rceptBgnde, rceptEndde, przwnerPresnatnDe, cntrctCnclsBgnde, cntrctCnclsEndde, hmpgAdres,
+		  cnstrctEntrpsNm, mdhsTelno, bsnsMbyNm, mvnprearngeym, specltRdnEarthAt, mdatTrgetAreaSecd,
+		  publicHouseEarthAt, lrsclBldlndAt, nplnPrvoprPublicHouseAt
+		  from lottery
+		where id = ${id};
+	</select>
+</mapper>

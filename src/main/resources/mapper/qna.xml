@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.happyhouse.model.mapper.QnaMapper">
+	<select id="getList" parameterType="String" resultType="QnaDto">
+		select qnano, userid, (select u.name from users u where u.id = q.userid) as username, title, hit, regtime
+		from qna q
+		 where q.userid = #{userid}
+		 order by regtime desc;
+	</select>
+	
+	<select id="getListByAdmin" resultType="QnaDto">
+		select qnano, userid, (select u.name from users u where u.id = q.userid) as username,
+			title, hit, regtime
+		  from qna q 
+		  order by regtime desc
+	</select>
+	
+	<select id="getQna" parameterType="int" resultType="QnaDetailDto">
+		select qnano, userid, (select u.name from users u where u.id = q.userid) as username,
+			title, content, hit, regtime
+		  from qna q
+		where qnano = #{qnano}		  
+	</select>
+	
+	<update id="updateHit" parameterType="int">
+		update qna
+		   set hit = hit + 1
+		 where qnano = #{qnano}
+	</update>
+	
+	<update id="updateQna" parameterType="QnaDto">
+		update qna
+		<trim prefix="set" suffixOverrides=",">
+			<if test="title != null">title = #{title},</if>
+			<if test="content != null">content = #{content},</if>
+		</trim>
+		where qnano = #{qnano}
+	</update>
+	
+	<delete id="deleteQna" parameterType="int">
+		delete from qna
+		where qnano = #{qnano}
+	</delete>
+	
+	<insert id="createQna" parameterType="QnaDto">
+		insert into qna (userid, title, content)
+		values (#{userid}, #{title}, #{content})
+	</insert>
+	
+	<select id="getReplies" parameterType="int" resultType="ReplyDto">
+		select replyno, userid, (select u.name from users u where u.id = r.userid) as username, content, regtime
+		  from reply r
+		 where qnano = #{qnano}
+		 order by regtime desc
+	</select>
+	
+	<update id="updateReply" parameterType="ReplyDto">
+		update reply
+  		<trim prefix="set" suffixOverrides=",">
+			<if test="content != null">content = #{content},</if>
+		</trim> 
+		where replyno = #{replyno}
+	</update>
+	
+	<delete id="deleteReply" parameterType="int">
+		delete from reply
+		 where replyno = #{replyno}
+	</delete>
+	
+	<insert id="createReply" parameterType="ReplyDto" >
+		insert into reply (qnano, userid, content)
+		 values (#{qnano}, #{userid}, #{content})
+	</insert>
+</mapper>

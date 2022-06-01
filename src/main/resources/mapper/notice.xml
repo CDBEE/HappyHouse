@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="com.ssafy.happyhouse.model.mapper.NoticeMapper">
+
+
+<select id="getList" resultType="NoticeDto">
+select noticeno, title, content, hit, regtime
+  from notices
+</select>
+
+<select id="getNotice" parameterType="int" resultType="NoticeDetailDto">
+select noticeno, title, content,hit, regtime
+  from notices
+ where noticeno = #{noticeno}
+</select>
+
+	<update id="updateHit" parameterType="int">
+		update notices
+		   set hit = hit + 1
+		 where noticeno = #{noticeno}
+	</update>
+	
+
+<insert id="createNotice" parameterType="NoticeDto">
+insert into notices (title, content)
+values
+(#{title}, #{content})
+</insert>
+
+<update id="updateNotice" parameterType="NoticeDto">
+update notices
+<trim prefix="set" suffixOverrides=",">
+	<if test="title != null">title = #{title},</if>
+	<if test="content != null">content = #{content},</if>
+</trim>
+ where noticeno = #{noticeno}
+</update>
+
+<delete id="deleteNotice" parameterType="int">
+delete from notices
+ where noticeno = #{noticeno}
+</delete>
+</mapper>
